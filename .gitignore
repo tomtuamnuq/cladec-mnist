@@ -1,6 +1,13 @@
 # Pycharm stuff
 .idea
 
+# Tensorflow saved model data
+variables/
+
+# Numpy saved training model output data
+train_*.npy
+test.npy
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

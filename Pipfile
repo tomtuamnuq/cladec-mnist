@@ -10,6 +10,7 @@ matplotlib = "*"
 tensorflow = "*"
 keras = "*"
 seaborn = "*"
+jupyter = "*"
 
 [dev-packages]
 ipykernel = "*"

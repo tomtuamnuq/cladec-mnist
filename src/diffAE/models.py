@@ -1,9 +1,15 @@
+import keras.models
 import tensorflow as tf
 from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, BatchNormalization, Reshape, Conv2DTranspose, \
     Input
 from keras.models import Sequential, Model
 
-from src.common import get_optimizer
+from src.common import get_optimizer, SAVED_MODELS_BASE_PATH, loss_cladec_generator
+
+SAVED_MODEL_PATH = SAVED_MODELS_BASE_PATH.joinpath('diffAE')
+SAVED_CLASSIFIER_PATH = SAVED_MODEL_PATH.joinpath('classifier')
+SAVED_REFAE_PATH = SAVED_MODEL_PATH.joinpath('refae')
+SAVED_CLADEC_PATH = SAVED_MODEL_PATH.joinpath('cladec')
 
 tf.random.set_seed(1234)
 
@@ -46,7 +52,19 @@ def get_decoder_out(decoder_in: Input):
     return decoder
 
 
-def get_rafae(dense=True):
-    encoder = get_classifier_model(dense)
+def get_rafae(add_dense=True):
+    encoder = get_classifier_model(add_dense)
     decoder = get_decoder_out(encoder.output)
     return Model([encoder.input], [decoder])
+
+
+def get_cladec(classifier: keras.models.Model, alpha: float, acts_input_shape):
+    acts_input = Input(shape=acts_input_shape, dtype=tf.float32)
+    # custom inputs for the loss function
+    img_input = Input(shape=(28, 28))  # training or test images
+    labels_input = Input(shape=(10,))  # categorical encoded true labels
+    # decoder
+    img_output = get_decoder_out(acts_input)
+    model = Model([acts_input, labels_input, img_input], [img_output])
+    model.add_loss(loss_cladec_generator(classifier, alpha)(img_input, labels_input, img_output))
+    return model
