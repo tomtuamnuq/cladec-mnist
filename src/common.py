@@ -32,6 +32,13 @@ def remove_data_in_last_dim(data: np.ndarray, split_percentage: int):
     return data[:, ..., :subset_nr]
 
 
+def get_model_prediction(path, eval_input_data, split_percentage: int = 100):
+    if split_percentage < 100:
+        eval_input_data = remove_data_in_last_dim(eval_input_data, split_percentage)
+    model = keras.models.load_model(path)
+    return model.predict(eval_input_data)
+
+
 def get_optimizer(learning_rate=0.001):
     return keras.optimizers.Adam(
         learning_rate=learning_rate,  # default 0.001
