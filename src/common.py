@@ -4,26 +4,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 tf.random.set_seed(1234)
-dataset = keras.datasets.mnist
-(train_images, train_labels), (test_images, test_labels) = dataset.load_data()
-train_images = train_images.astype(np.float32)
-test_images = test_images.astype(np.float32)
-train_images /= 255.  # maximum pixel value
-test_images /= 255.
-
-SAVED_MODELS_BASE_PATH = pathlib.Path(__file__).parent.parent.joinpath('saved-models')
-
-
-def get_mnist_train_test():
-    global train_images, test_images
-    return train_images, test_images  # scaled pixel values in [0,1]
-
-
-def get_mnist_labels_categorical():
-    global train_labels, test_labels
-    train_labels_c = keras.utils.to_categorical(train_labels)
-    test_labels_c = keras.utils.to_categorical(test_labels)
-    return train_labels_c, test_labels_c
 
 
 def remove_data_in_last_dim(data: np.ndarray, split_percentage: int):
@@ -46,8 +26,8 @@ def get_optimizer(learning_rate=0.001):
     )
 
 
-def save_layer_activations(path: pathlib.Path, model: keras.models.Model, layer_name: str, test_data=test_images,
-                           train_data=train_images,
+def save_layer_activations(path: pathlib.Path, model: keras.models.Model, layer_name: str, test_data: np.ndarray,
+                           train_data: np.ndarray,
                            train_split: int = 10):
     layer = keras.Model(inputs=model.input,
                         outputs=model.get_layer(layer_name).output)
@@ -77,3 +57,17 @@ def loss_cladec_generator(classifier: keras.models.Model, alpha: float):
         return (1 - alpha) * mse(img_output, img_input) + alpha * cce(classifier(img_output), labels_input)
 
     return loss_cladec
+
+
+def keras_dataset_image_preprocessing(dataset):
+    (train_images, train_labels), (test_images, test_labels) = dataset.load_data()
+    train_images = train_images.astype(np.float32)
+    test_images = test_images.astype(np.float32)
+    train_images /= 255.  # maximum pixel value
+    test_images /= 255.
+    train_labels_c = keras.utils.to_categorical(train_labels)
+    test_labels_c = keras.utils.to_categorical(test_labels)
+    return (train_images, train_labels_c), (test_images, test_labels_c)
+
+
+SAVED_MODELS_BASE_PATH = pathlib.Path(__file__).parent.parent.joinpath('saved-models')

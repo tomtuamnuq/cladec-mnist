@@ -4,12 +4,7 @@ from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, BatchNor
     Input
 from keras.models import Sequential, Model
 
-from src.common import get_optimizer, SAVED_MODELS_BASE_PATH, loss_cladec_generator
-
-SAVED_MODEL_PATH = SAVED_MODELS_BASE_PATH.joinpath('perfectAE')
-SAVED_CLASSIFIER_PATH = SAVED_MODEL_PATH.joinpath('classifier')
-SAVED_REFAE_PATH = SAVED_MODEL_PATH.joinpath('refae')
-SAVED_CLADEC_PATH = SAVED_MODEL_PATH.joinpath('cladec')
+from src.common import get_optimizer, loss_cladec_generator
 
 tf.random.set_seed(1234)
 

@@ -1,0 +1,6 @@
+from src.mnist.data import SAVED_MODELS_MNIST_PATH
+
+SAVED_MODEL_PATH = SAVED_MODELS_MNIST_PATH.joinpath('diffAE')
+SAVED_CLASSIFIER_PATH = SAVED_MODEL_PATH.joinpath('classifier')
+SAVED_REFAE_PATH = SAVED_MODEL_PATH.joinpath('refae')
+SAVED_CLADEC_PATH = SAVED_MODEL_PATH.joinpath('cladec')
