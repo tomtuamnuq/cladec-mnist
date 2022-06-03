@@ -71,3 +71,4 @@ def keras_dataset_image_preprocessing(dataset):
 
 
 SAVED_MODELS_BASE_PATH = pathlib.Path(__file__).parent.parent.joinpath('saved-models')
+SAVED_PICS_PATH = pathlib.Path(__file__).parent.parent.joinpath('eval').joinpath('img')
