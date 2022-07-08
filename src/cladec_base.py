@@ -11,34 +11,32 @@ class ClaDecBase(keras.Model, abc.ABC):
         super(ClaDecBase, self).__init__(**kwargs)
         self.alpha = alpha
         self.layer_to_explain = classifier.get_layer(layer_name)
-        self.model_up_to_layer_to_explain = Model(classifier.input, self.layer_to_explain.output)
-        self.classifier = Model(self.model_up_to_layer_to_explain.output, classifier.output, name="classifier")
+        self.classifier = classifier
         self.latent_dim = None
         self.encoder = None
         self.decoder = None
-        classifier.trainable = False
         self.total_loss_tracker = keras.metrics.Mean(name="total_loss")
         self.reconstruction_loss_tracker = keras.metrics.Mean(
             name="reconstruction_loss"
         )
         self.reconstruction_loss_fn = losses.MeanSquaredError()
-        self.class_loss_tracker = keras.metrics.Mean(name="class_loss")
-        self.class_loss_fn = losses.CategoricalCrossentropy()
 
+    @abc.abstractmethod
     def call(self, inputs):
-        acts = self.model_up_to_layer_to_explain(inputs)
-        z = self.encoder(acts)
-        return self.decoder(z)
+        return NotImplemented
 
     @property
     def metrics(self):
         return [
             self.total_loss_tracker,
             self.reconstruction_loss_tracker,
-            self.class_loss_tracker
         ]
 
-    def _get_decoder(self):
+    @abc.abstractmethod
+    def _get_encoder(self):
+        return NotImplemented
+
+    def create_default_decoder(self):
         # default encoder for MNIST and Fashion-MNIST
         latent_inputs = keras.Input(shape=self.latent_dim)
         x = layers.Dense(7 * 7 * 64, activation="relu")(latent_inputs)
@@ -47,6 +45,25 @@ class ClaDecBase(keras.Model, abc.ABC):
         x = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same")(x)
         decoder_outputs = layers.Conv2DTranspose(1, 3, activation="sigmoid", padding="same")(x)
         return Model(latent_inputs, decoder_outputs, name="decoder")
+
+    @staticmethod
+    def create_128_dense_decoder():
+        latent_inputs = keras.Input(shape=128)
+        decoder = layers.Reshape((1, 1, 128))(latent_inputs)
+        decoder = layers.Conv2DTranspose(64, (4, 4), padding='valid', strides=(2, 2), activation='relu')(decoder)
+        decoder = layers.Conv2DTranspose(32, (3, 3), padding='valid', strides=(2, 2), activation='relu')(decoder)
+        decoder = layers.Conv2DTranspose(1, (3, 3), padding='valid', strides=(3, 3), activation='sigmoid',
+                                         output_padding=1)(decoder)
+
+        return Model(latent_inputs, decoder, name="decoder")
+
+    @staticmethod
+    def create_64_conv_decoder():
+        latent_inputs = keras.Input(shape=3136)
+        decoder = layers.Reshape((7, 7, 64))(latent_inputs)
+        decoder = layers.Conv2DTranspose(64, (4, 4), padding='same', strides=(2, 2), activation='relu')(decoder)
+        decoder = layers.Conv2DTranspose(1, (4, 4), padding='same', strides=(2, 2), activation='sigmoid')(decoder)
+        return Model(latent_inputs, decoder, name="decoder")
 
     @abc.abstractmethod
     def train_step(self, data):
