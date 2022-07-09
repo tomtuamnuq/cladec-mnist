@@ -7,6 +7,7 @@ from keras.models import Sequential, Model
 from src.cladec_base import ClaDecBase
 
 
+# inspired by https://keras.io/examples/generative/vae/
 class Sampling(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding."""
 
@@ -52,6 +53,7 @@ class ClaDecVAE(ClaDecBase):
     def train_step(self, data):
         x, y = data
         with tf.GradientTape() as tape:
+            # TODO model needs call to be savable - just save the weights
             z_mean, z_log_var, z = self.encoder(x)
             reconstruction = self.decoder(z)
             y_prime = self.classifier(reconstruction)
@@ -84,3 +86,6 @@ class ClaDecVAE(ClaDecBase):
         return self.decoder(z)
 
 # TODO add Reference CLass similar to cladec.py
+#   add test_step
+#   add model loading by weights
+#   evaluate

@@ -68,3 +68,7 @@ class ClaDecBase(keras.Model, abc.ABC):
     @abc.abstractmethod
     def train_step(self, data):
         return NotImplemented
+
+    @abc.abstractmethod
+    def test_step(self, data):
+        return NotImplemented
