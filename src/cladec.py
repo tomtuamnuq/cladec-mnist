@@ -12,7 +12,7 @@ class ClaDec(ClaDecBase):
 
     def __init__(self, classifier: Sequential, layer_name: str, alpha: float, decoder: Model = None, **kwargs):
         super(ClaDec, self).__init__(classifier, layer_name, alpha, **kwargs)
-        self.encoder = self._get_encoder()
+        self.encoder = self.create_encoder()
         if decoder is None:
             self.decoder = self.create_default_decoder()
         else:
@@ -37,7 +37,7 @@ class ClaDec(ClaDecBase):
             self.class_loss_tracker
         ]
 
-    def _get_encoder(self):
+    def create_encoder(self):
         code = layers.Flatten(name="code")(self.layer_to_explain.output)
         self.latent_dim = code.shape[-1]
         return Model(self.classifier.input, code)
@@ -46,30 +46,28 @@ class ClaDec(ClaDecBase):
     def train_step(self, data):
         x, y = data
         with tf.GradientTape() as tape:
-            reconstruction = self(x, training=True)
-            y_prime = self.classifier(reconstruction, training=False)
-            classification_loss = self.class_loss_fn(y, y_prime)
-            reconstruction_loss = self.reconstruction_loss_fn(x, reconstruction)
-            total_loss = (1 - self.alpha) * reconstruction_loss + self.alpha * classification_loss
+            classification_loss, reconstruction_loss, total_loss = self._calc_losses(x, y)
         grads = tape.gradient(total_loss, self.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
-        self.total_loss_tracker.update_state(total_loss)
-        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
-        self.class_loss_tracker.update_state(classification_loss)
-        return {
-            "loss": self.total_loss_tracker.result(),
-            "reconstruction_loss": self.reconstruction_loss_tracker.result(),
-            "classification_loss": self.class_loss_tracker.result()
-        }
+        return self.update_loss_tracker(classification_loss, reconstruction_loss, total_loss)
 
     @tf.function
-    def test_step(self, data):
-        x, y = data
-        reconstruction = self(x, training=False)
+    def _calc_losses(self, x, y):
+        reconstruction = self(x, training=True)
         y_prime = self.classifier(reconstruction, training=False)
         classification_loss = self.class_loss_fn(y, y_prime)
         reconstruction_loss = self.reconstruction_loss_fn(x, reconstruction)
         total_loss = (1 - self.alpha) * reconstruction_loss + self.alpha * classification_loss
+        return classification_loss, reconstruction_loss, total_loss
+
+    @tf.function
+    def test_step(self, data):
+        x, y = data
+        classification_loss, reconstruction_loss, total_loss = self._calc_losses(x, y)
+        return self.update_loss_tracker(classification_loss, reconstruction_loss, total_loss)
+
+    @tf.function
+    def update_loss_tracker(self, classification_loss, reconstruction_loss, total_loss):
         self.total_loss_tracker.update_state(total_loss)
         self.reconstruction_loss_tracker.update_state(reconstruction_loss)
         self.class_loss_tracker.update_state(classification_loss)

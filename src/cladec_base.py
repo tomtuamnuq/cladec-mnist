@@ -33,7 +33,7 @@ class ClaDecBase(keras.Model, abc.ABC):
         ]
 
     @abc.abstractmethod
-    def _get_encoder(self):
+    def create_encoder(self):
         return NotImplemented
 
     def create_default_decoder(self):
