@@ -1,3 +1,4 @@
+import sys
 import os
 import pathlib
 
@@ -36,8 +37,6 @@ def train_refae(x, cladec: Model, epochs: int):
 
 
 def create_models(epochs: int):
-    # approx 40 minutes for epochs=5
-
     datasets = keras.datasets.fashion_mnist, keras.datasets.mnist
     model_paths = src.utils.SAVED_MODELS_PATH_FASHION, src.utils.SAVED_MODELS_PATH_MNIST
     layers = [DENSE_LAYER_NAME, CONV_LAYER_NAME]
@@ -87,5 +86,6 @@ def test_create_models():
 
 
 if __name__ == '__main__':
-    # create_models(10)
-    test_create_models()
+    sys.stdout = open(src.utils.SAVED_MODELS_BASE_PATH.joinpath("std_output.txt"), "w")
+    create_models(10)
+    # test_create_models()

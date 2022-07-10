@@ -18,7 +18,6 @@ class ClaDec(ClaDecBase):
         else:
             self.decoder = decoder
         self.class_loss_tracker = keras.metrics.Mean(name="class_loss")
-        self.class_loss_fn = losses.CategoricalCrossentropy()
         self.classifier.trainable = False
 
     @classmethod
@@ -55,7 +54,7 @@ class ClaDec(ClaDecBase):
     def _calc_losses(self, x, y):
         reconstruction = self(x, training=True)
         y_prime = self.classifier(reconstruction, training=False)
-        classification_loss = self.class_loss_fn(y, y_prime)
+        classification_loss = tf.reduce_mean(self.classifier.loss(y, y_prime))
         reconstruction_loss = self.reconstruction_loss_fn(x, reconstruction)
         total_loss = (1 - self.alpha) * reconstruction_loss + self.alpha * classification_loss
         return classification_loss, reconstruction_loss, total_loss

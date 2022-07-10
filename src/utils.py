@@ -41,4 +41,4 @@ SAVED_CLADEC_PATH_MNIST = SAVED_MODELS_PATH_MNIST.joinpath('cladec')
 
 DENSE_LAYER_NAME = 'my_dense'
 CONV_LAYER_NAME = 'my_conv'
-ALPHAS = [0, 1, 50, 99]
+ALPHAS = [0, 1, 5, 10, 25, 50, 99]
