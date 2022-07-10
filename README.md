@@ -8,8 +8,7 @@ fashion-mnist dataset.
 The paper [Explaining Neural Networks by Decoding Layer Activations](https://arxiv.org/abs/2005.13630) by Johannes
 Schneider and Michalis Vlachos introduces the `ClaDec` architecture.
 ClaDec explains a layer of a NN by using the NN up to that layer as an encoder, and provides the latent representation
-of
-inputs in that layer as code for a decoder. The decoder then reconstructs inputs based on that code.
+of inputs in that layer as code for a decoder. The decoder then reconstructs inputs based on that code.
 
 Reconstructed inputs are similar to the input domain and, therefore, easy to comprehend. Support is given in
 the [extended version of the paper](https://www.semanticscholar.org/paper/Explaining-Classifiers-by-Constructing-Familiar-Schneider-Vlachos/9f8d136595ff962e81a83850612c13ebfeafa115#citing-papers)
@@ -71,40 +70,122 @@ accuracy `0.9905` and `0.8910`) on unseen data.
 Evidence in data for the mean squared error and classification loss for each ClaDec and RefAE instance is shown
 in `Evaluation-Performance.ipynb`. The actual explanations are in the `Evaluation-Layer` notebooks:
 
-	- results of ClaDec for different values of alpha
-		- similar agreement of alpha to reconstructions as in Figure 11
-		- reconstructions worse than Figure 9 (for all tested alphas)
-	- decoded the final dense layer - reconstructions really blurry, prototype like
-	- decoded the last conv layer - reconstructions better but still prototype like
-	- even for small values of alpha "strange" patterns only
+### Explanations for Fashion MNIST
+
+#### Dense Layer
 
 The following image shows some explanations for `Fashion-MNIST` on the 128 neuron `Dense` layer of the classifier:
 
-![Fashion Dense](eval/img/fashion_mnist/sandal_dense.png)
+![Fashion Dense](eval/img/fashion_mnist/sneaker_dense.png)
 The reference auto encoder for `Fashion-MNIST` is not perfect. The reconstructions are a bit blurry and one needs to
-compare the output of the ref auto encoder with ClaDec and the original image to derive insights.
+compare the output of the ref auto encoder with ClaDec and the original image to derive insights. Some blurriness is the
+effect of the chosen decoder architecture. However, the decoder is able to reconstruct images with details and
+different grey values.
 
-Explanations of the `Convolutional` layer look more normal:
+Explanations from the ClaDec decoder look more blurry and lack details. In fact, it only shows the general outlines
+and not the textural details. The classifier seems to only look at the outline and does not rely on grey values.
+This would explain why it classifies the sneakers incorrectly as Ankle Boot. The classifier cannot distinguish
+between sneaker and ankle boot just by looking at the outline.
 
-![Fashion Conv](eval/img/fashion_mnist/sandal_conv.png)
+Some more examples on the classification of sandals:
+![Fashion Dense](eval/img/fashion_mnist/sandal_dense.png)
 
-For `MNIST` reconstructions are better since the dataset is "easier". For the `Dense` layer one nevertheless sees
-strange effects for higher `alpha`:
+The classifier seems to try to fit the input into some sort of learned prototype. This is particularly clear for the
+wrong classification as sneakers.
+It does not capture the necessary details of texture inside the sandals. It just takes the outline (general shape)
+and
+sees a sneaker. But there are some contradictions. Why does it classify the second sandal as correct. It seemed to got
+at
+least
+some details here, which resulted in the darker are in the middle of the sandal.
+The misclassified explanations again lack details of the inside of the shoes.Looking only at the outline makes it
+difficult to distinguish between a high sandal and an ankle boot.
+
+### Effects of alpha
+
+The images greatly visualize the effect of alpha. For `alpha=0.0` the focus is on reconstruction, and it is easy to
+compare the explanations with the original ones. This is also possible for a low value of alpha, and sometimes
+there are darker areas which could highlight what area the classifier finds interesting for prediction (see e.g. sandals
+for
+0.05).
+
+For `alpha=0.25` it is difficult to actually see a shoe in the images. The outputs are formed by small rectangles with
+different
+grey values being scattered over the outline of the original shoe. Interestingly the reconstructions of `alpha=0.5` do
+not contain
+many grey values again. The outputs seem to reflect the effects of striding and pooling in the convolutional layers.
+
+A high value of alpha (e.g. 0.99) creates strange patterns. It has nothing to do with a shoe, and areas which are not
+even
+used in the original input are turned white or vice versa. However, same classes seem to produce similar patterns.
+
+For my small network the influence of `alpha` on the reconstruction seems to be very high: Even for small values
+of `alpha` reconstructions have many visual effects and the reconstructions are worse. The results of Figure 11
+in [extended version of the paper](https://www.semanticscholar.org/paper/Explaining-Classifiers-by-Constructing-Familiar-Schneider-Vlachos/9f8d136595ff962e81a83850612c13ebfeafa115#citing-papers)
+are the opposite: Even for very high `alpha` reconstructions look quite good. This is likely due to the
+larger network size of the decoder that they used.
+
+### Convolutional Layer
+
+Explanations for the `Convolutional` layer:
+
+![Fashion Conv](eval/img/fashion_mnist/sneaker_conv.png)
+
+The decoded images from the last convolutional layer seem to contain way more information than the ones from the dense
+layers.
+Shoes still contain details such as
+textures and different grey values. This is the case for the reference AE as well. From this we could derive that
+the information loss occurs in the `Dense` layer, or, that the convolutional layers were not much adjusted for the
+classification task:
+If the classifier would focus on particular learned features in the kernels we should see only those in the
+reconstructions. But it could be that the classifier uses only some kernels, and altogether the kernels still have the
+information.
+
+For the convolutional layer the influence of alpha is quite similar, but one needs a higher value to produce the same
+effects.
+Even high values still somewhat resemble the original image.
+
+### Explanations for MNIST
+
+For `MNIST` reconstructions are overall better since the dataset is "easier".
+The reference auto encoder was able to reconstruct the `MNIST` images quite well. One therefore only
+compares the output of ClaDec with the original images to derive conclusions.
+
+#### Dense Layer
 
 ![MNIST Dense](eval/img/mnist/mnist_dense.png)
 
-The reference auto encoder was able to reconstruct the `MNIST` images quite well. One therefore only
-compares the output of ClaDec with the original images to derive conclusions.
+ClaDec generated images for the correctly classified images are quite good. The classifier seems to be quite certain.
+For the wrongly classified images reconstructions are worse which hints to the uncertainty of the classifier.
+Blurry regions appear particularly in regions which would be important to distinguish the digits (e.g. comparing the 9
+which was classified as a 4).
+A low `alpha` seems to produce explanations which show what the classifier actually "saw". For instance, reconstructions
+for alpha between `0.05` and `0.25` for the 9 which was classified as 5 visualize a 5.
+
+For `alpha=0.5` one sees prototypical digit shapes. The classifier learned certain prototypical areas.
+For example, there are similar patterns for the images classified as 4. We see similar patterns for the
+5 and the incorrectly classified 9. For the digit 7 it is contra-intuitive since
+the prototypical instance looks like a 7 but the classifier classified it incorrectly as a 1.
 
 For the `Convolutional` layer reconstructions are almost perfect:
 
 ![MNIST Conv](eval/img/mnist/mnist_conv.png)
 
-Only for rather high `alpha` values some visual effects appear.
+Only for higher `alpha` values some visual effects appear, but they are not any different between correctly and
+wrongly classified digits. One is not able to derive insights why the classifications were wrong.
 
 # Variational Decoder
 
-work in progress
+work in progress:
 
+Can ClaDec be extended to derive global insights about the classifier by using a variational decoder?
+
+A first trial gave some prototypical forms from ClaDec:
+
+![Fashion_VAE](eval/img/fashion_mnist/vae_latent_space_cladec.png)
+
+This is to be compared to a reference variational auto encoder:
+
+![Fashion_VAE](eval/img/fashion_mnist/vae_latent_space_ref.png)
 
 
