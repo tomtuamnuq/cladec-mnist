@@ -17,7 +17,6 @@ class ClaDec(ClaDecBase):
             self.decoder = self.create_default_decoder()
         else:
             self.decoder = decoder
-        self.class_loss_tracker = keras.metrics.Mean(name="class_loss")
         self.classifier.trainable = False
 
     @classmethod
@@ -27,14 +26,6 @@ class ClaDec(ClaDecBase):
         cladec.load_weights(path_to_weights)
         cladec.compile()
         return cladec
-
-    @property
-    def metrics(self):
-        return [
-            self.total_loss_tracker,
-            self.reconstruction_loss_tracker,
-            self.class_loss_tracker
-        ]
 
     def create_encoder(self):
         code = layers.Flatten(name="code")(self.layer_to_explain.output)
@@ -53,8 +44,7 @@ class ClaDec(ClaDecBase):
     @tf.function
     def _calc_losses(self, x, y):
         reconstruction = self(x, training=True)
-        y_prime = self.classifier(reconstruction, training=False)
-        classification_loss = tf.reduce_mean(self.classifier.loss(y, y_prime))
+        classification_loss = self.classification_loss_fn(reconstruction, y)
         reconstruction_loss = self.reconstruction_loss_fn(x, reconstruction)
         total_loss = (1 - self.alpha) * reconstruction_loss + self.alpha * classification_loss
         return classification_loss, reconstruction_loss, total_loss

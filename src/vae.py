@@ -29,8 +29,6 @@ class ClaDecVAE(ClaDecBase):
         self.encoder = self.create_encoder()
         self.decoder = self.create_default_decoder()
         self.kl_loss_tracker = keras.metrics.Mean(name="kl_loss")
-        self.class_loss_tracker = keras.metrics.Mean(name="class_loss")
-        self.class_loss_fn = losses.CategoricalCrossentropy()
         self.classifier.trainable = False
 
     @property
@@ -81,8 +79,7 @@ class ClaDecVAE(ClaDecBase):
     @tf.function
     def _calc_losses(self, x, y):
         z_mean, z_log_var, reconstruction = self(x)
-        y_prime = self.classifier(reconstruction)
-        classification_loss = self.class_loss_fn(y, y_prime)
+        classification_loss = self.classification_loss_fn(reconstruction, y)
         reconstruction_loss = self.reconstruction_loss_fn(x, reconstruction)
         kl_loss = self.kl_loss_fn(z_mean, z_log_var)
         total_loss = (1 - self.alpha) * reconstruction_loss + self.alpha * classification_loss + kl_loss

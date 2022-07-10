@@ -1,5 +1,6 @@
 import abc
 
+import tensorflow as tf
 from tensorflow import keras
 from keras import layers, losses
 from keras.models import Sequential, Model
@@ -19,7 +20,13 @@ class ClaDecBase(keras.Model, abc.ABC):
         self.reconstruction_loss_tracker = keras.metrics.Mean(
             name="reconstruction_loss"
         )
+        self.class_loss_tracker = keras.metrics.Mean(name="class_loss")
         self.reconstruction_loss_fn = losses.MeanSquaredError()
+
+    @tf.function
+    def classification_loss_fn(self, x, y):
+        y_prime = self.classifier(x)
+        return tf.reduce_mean(self.classifier.loss(y, y_prime))
 
     @abc.abstractmethod
     def call(self, inputs):
@@ -30,6 +37,7 @@ class ClaDecBase(keras.Model, abc.ABC):
         return [
             self.total_loss_tracker,
             self.reconstruction_loss_tracker,
+            self.class_loss_tracker
         ]
 
     @abc.abstractmethod
