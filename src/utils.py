@@ -20,10 +20,9 @@ def keras_dataset_image_preprocessing(dataset):
 
 
 def get_optimizer(learning_rate=0.001):
-    return keras.optimizers.Adam(
-        learning_rate=learning_rate,  # default 0.001
-        epsilon=1e-04,  # default 1e-07
-    )
+    return keras.optimizers.Adam(learning_rate=learning_rate,  # default 0.001
+                                 epsilon=1e-04,  # default 1e-07
+                                 )
 
 
 SAVED_MODELS_BASE_PATH = pathlib.Path(__file__).parent.parent.joinpath('saved-models')
@@ -41,4 +40,4 @@ SAVED_CLADEC_PATH_MNIST = SAVED_MODELS_PATH_MNIST.joinpath('cladec')
 
 DENSE_LAYER_NAME = 'my_dense'
 CONV_LAYER_NAME = 'my_conv'
-ALPHAS = [0, 1, 5, 10, 25, 50, 99]
+ALPHAS = [0, 1, 5, 10, 25, 50, 99] + [99.9, 99.99, 100]
