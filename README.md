@@ -64,11 +64,13 @@ initialized weights and is trained on reconstruction loss only:
 
 ## Results
 
-The final evaluation is given in the Jupyter Notebooks of `eval` dir.
+The final evaluation is given in the Jupyter Notebooks of `eval` dir and the `src.eval.py` script.
 Both classifiers (`MNIST` and `Fashion-MNIST`) achieve normal performance (categorical
-accuracy `0.9903` and `0.9206`) on unseen data.
-Evidence in data for reconstruction and classification loss for each ClaDec and RefAE instance is shown
-in `Evaluation-Performance.ipynb`. The actual explanations are in the `Evaluation-Layer` notebooks.
+accuracy `0.9903` and `0.9206`) on unseen data. A qualitative evaluation on reconstructed images is given in
+the `Evaluation-Layer` notebooks.
+Evidence in data (quantitative evaluation) for total, reconstruction and classification loss for each ClaDec and RefAE
+is the output of the `src.eval.py` script (given in `eval.evaluation_result.csv`):
+![Eval_Data](eval/img/eval_result_data.jpg)
 
 ### Explanations for Fashion MNIST
 
@@ -96,8 +98,7 @@ It does not capture the necessary details of texture inside the sandals. It just
 and sees a sneaker (or ankle boot).
 But there are some contradictions. Why does it classify the first 3 sandals correctly? It seemed to got
 at least some details here, which resulted in the darker are in the middle of the sandal. The ClaDec output for those
-three looks
-again prototypically.
+three looks again prototypically.
 The misclassified explanations again lack details of the inside of the shoes. Looking only at the outline makes it
 difficult to distinguish between a high sandal and an ankle boot.
 

@@ -26,7 +26,8 @@ def get_optimizer(learning_rate=0.001):
 
 
 SAVED_MODELS_BASE_PATH = pathlib.Path(__file__).parent.parent.joinpath('saved-models')
-SAVED_PICS_PATH = pathlib.Path(__file__).parent.parent.joinpath('eval').joinpath('img')
+SAVED_EVAL_BASE_PATH = pathlib.Path(__file__).parent.parent.joinpath('eval')
+SAVED_PICS_PATH = SAVED_EVAL_BASE_PATH.joinpath('img')
 
 SAVED_MODELS_PATH_FASHION = SAVED_MODELS_BASE_PATH.joinpath('fashion_mnist')
 SAVED_CLASSIFIER_PATH_FASHION = SAVED_MODELS_PATH_FASHION.joinpath('classifier')
@@ -38,6 +39,10 @@ SAVED_CLASSIFIER_PATH_MNIST = SAVED_MODELS_PATH_MNIST.joinpath('classifier')
 SAVED_REFAE_PATH_MNIST = SAVED_MODELS_PATH_MNIST.joinpath('refae')
 SAVED_CLADEC_PATH_MNIST = SAVED_MODELS_PATH_MNIST.joinpath('cladec')
 
+DATASETS = keras.datasets.fashion_mnist, keras.datasets.mnist
+MODEL_PATHS = SAVED_MODELS_PATH_FASHION, SAVED_MODELS_PATH_MNIST
+
 DENSE_LAYER_NAME = 'my_dense'
 CONV_LAYER_NAME = 'my_conv'
+LAYERS_TO_EXPLAIN = [DENSE_LAYER_NAME, CONV_LAYER_NAME]
 ALPHAS = [0, 1, 5, 10, 25, 50, 99] + [99.9, 99.99, 100]
